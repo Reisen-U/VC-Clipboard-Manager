@@ -85,6 +85,18 @@ g++ main.cpp resource.o -o ClipboardManager.exe -mwindows -municode -static -lgd
 
 `app.manifest` 会通过 `resource.rc` 嵌入程序，保证 Windows 能正确识别 DPI 感知设置。
 
+## 内存占用评估
+
+在当前构建的 Windows 环境中，以“无历史记录、程序仅托盘常驻”为基线进行实测（2026 年 8 月 10 日）：
+
+| 指标 | 实测值 |
+| --- | ---: |
+| Working Set（工作集） | 约 34.4 MB |
+| Private Bytes（专用内存） | 约 23.4 MB |
+| 启动以来峰值 Working Set | 约 45.1 MB |
+
+这不是固定上限：文本内容会按原文长度保存在内存中，图片会常驻缩略图；缩略图上限为 `220 × 160` 像素，历史条数越多、图片越多，内存占用越高。该数据是当前版本的基线测量，不代表所有机器或所有使用场景，也没有与 Tauri/Electron 项目进行同条件基准测试。
+
 ## 许可
 
 本项目使用 [MIT License](./LICENSE) 开源。
