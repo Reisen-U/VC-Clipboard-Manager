@@ -1,0 +1,15 @@
+# Build outputs
+*.exe
+*.o
+
+# Local runtime data
+ClipManager/
+*.ini
+
+# Editor and OS files
+.vs/
+.vscode/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
