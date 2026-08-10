@@ -8,7 +8,7 @@
 
 使用 AI agent 编写的基于 Tauri 的剪贴板管理器太多了！Tauri 让跨平台开发和界面迭代变得很方便，但这类应用的 UI 本质上仍然是 WebView/Web UI。
 
-所以我 Vibe Coding 了这个**原生 C/C++ Win32 项目**，直接使用 Windows API 处理剪贴板、全局快捷键、系统托盘、缓存和开机启动。
+所以我 Vibe Coding 了这个**原生 C++ Win32 项目**，直接使用 Windows API 处理剪贴板、全局快捷键、系统托盘、缓存和开机启动。
 
 ## 功能
 
