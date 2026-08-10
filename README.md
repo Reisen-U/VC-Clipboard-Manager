@@ -6,6 +6,12 @@
 >
 > 本项目是一个 Vibe Coding 项目，名称中的 VC 不是 Visual C++，而是 Vibe Coding。
 
+## 项目起因
+
+我看到不少人使用 AI agent 编写基于 Tauri 的剪贴板管理器。Tauri 让跨平台开发和界面迭代变得很方便，但这类应用的 UI 本质上仍然是 WebView/Web UI。
+
+所以我也用 Vibe Coding 做了这个原生 C/C++ Win32 项目：不依赖网页渲染层，直接使用 Windows API 处理剪贴板、全局快捷键、系统托盘、缓存和开机启动。它是一个面向 Windows 的小工具，也是一份对“让 AI agent 直接写原生桌面程序”这一方向的实践记录。
+
 ## 功能
 
 - 系统托盘常驻，支持全局快捷键唤出：`Ctrl + Shift + V`、`Alt + V`、`Win + V`
@@ -17,9 +23,9 @@
 - 可选的“开机自动启动”设置；取消勾选并保存即可移除启动项
 - 支持 Windows 非整数显示缩放，并声明 Per-Monitor V2 DPI 感知
 
-## 截图
+## 界面截图
 
-![VC Clipboard Manager](scissors.png)
+![VC Clipboard Manager 界面](./界面截图.jpg)
 
 ## 构建
 
@@ -86,4 +92,4 @@ HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run\VCClipboardManag
 
 ## 许可
 
-当前仓库未附加独立开源许可证；如需公开再分发或二次开发，请先补充适合你的许可证文件。
+本项目使用 [MIT License](./LICENSE) 开源。
