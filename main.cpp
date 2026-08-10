@@ -1438,8 +1438,8 @@ void OpenSettingsWindow(HWND hwnd) {
 
     ShowWindow(hwnd, SW_HIDE);
     UINT dpi = GetWindowDpi(hwnd);
-    const int settingsWidth = DpiScale(520, dpi);
-    const int settingsHeight = DpiScale(450, dpi);
+    const int settingsWidth = DpiScale(620, dpi);
+    const int settingsHeight = DpiScale(620, dpi);
     POINT cursor = {};
     GetCursorPos(&cursor);
     HMONITOR monitor = MonitorFromPoint(cursor, MONITOR_DEFAULTTONEAREST);
@@ -1475,75 +1475,75 @@ LRESULT CALLBACK SettingsWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
                 DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                 DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
-            // ── 卡片1：缓存管理 (y=60‥118) ──
+            // ── 卡片1：历史记录 ──
             HWND hLabelCount = CreateWindowExW(0, L"STATIC", L"最大保存条数", WS_CHILD | WS_VISIBLE,
-                S(26), S(90), S(112), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(28), S(108), S(112), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsMaxCount = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", NULL,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
-                S(145), S(88), S(68), S(24), hwnd, (HMENU)ID_SETTINGS_MAXCOUNT, GetModuleHandle(NULL), NULL);
+                S(150), S(105), S(78), S(26), hwnd, (HMENU)ID_SETTINGS_MAXCOUNT, GetModuleHandle(NULL), NULL);
             HWND hLabelRetention = CreateWindowExW(0, L"STATIC", L"历史保留天数", WS_CHILD | WS_VISIBLE,
-                S(280), S(90), S(112), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(330), S(108), S(112), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsRetention = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", NULL,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
-                S(400), S(88), S(68), S(24), hwnd, (HMENU)ID_SETTINGS_RETENTION, GetModuleHandle(NULL), NULL);
+                S(450), S(105), S(78), S(26), hwnd, (HMENU)ID_SETTINGS_RETENTION, GetModuleHandle(NULL), NULL);
 
-            // ── 卡片2：显示设置 (y=128‥200) ──
+            // ── 卡片2：界面显示 ──
             HWND hLabelFontSize = CreateWindowExW(0, L"STATIC", L"字号 (10–28)", WS_CHILD | WS_VISIBLE,
-                S(26), S(158), S(100), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(28), S(216), S(120), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsFontSize = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", NULL,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
-                S(124), S(156), S(68), S(24), hwnd, (HMENU)ID_SETTINGS_FONT_SIZE, GetModuleHandle(NULL), NULL);
+                S(150), S(213), S(78), S(26), hwnd, (HMENU)ID_SETTINGS_FONT_SIZE, GetModuleHandle(NULL), NULL);
             HWND hLabelLineCount = CreateWindowExW(0, L"STATIC", L"显示行数 (1–6)", WS_CHILD | WS_VISIBLE,
-                S(280), S(158), S(100), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(330), S(216), S(120), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsLineCount = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", NULL,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
-                S(378), S(156), S(68), S(24), hwnd, (HMENU)ID_SETTINGS_LINE_COUNT, GetModuleHandle(NULL), NULL);
+                S(470), S(213), S(78), S(26), hwnd, (HMENU)ID_SETTINGS_LINE_COUNT, GetModuleHandle(NULL), NULL);
             g_hwndSettingsWrap = CreateWindowExW(WS_EX_TRANSPARENT, L"BUTTON", L"长文本自动换行",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-                S(26), S(186), S(160), S(22), hwnd, (HMENU)ID_SETTINGS_WRAP, GetModuleHandle(NULL), NULL);
+                S(28), S(250), S(180), S(22), hwnd, (HMENU)ID_SETTINGS_WRAP, GetModuleHandle(NULL), NULL);
 
-            // ── 卡片3：快捷键 (y=210‥268) ──
+            // ── 卡片3：快捷键 ──
             HWND hLabelHotkey = CreateWindowExW(0, L"STATIC", L"唤出快捷键", WS_CHILD | WS_VISIBLE,
-                S(26), S(240), S(90), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(28), S(337), S(105), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsHotkey1 = CreateWindowExW(0, L"BUTTON", L"Ctrl + Shift + V",
                 WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | WS_GROUP,
-                S(130), S(238), S(150), S(22), hwnd, (HMENU)ID_SETTINGS_HOTKEY_1, GetModuleHandle(NULL), NULL);
+                S(145), S(334), S(165), S(26), hwnd, (HMENU)ID_SETTINGS_HOTKEY_1, GetModuleHandle(NULL), NULL);
             g_hwndSettingsHotkey2 = CreateWindowExW(0, L"BUTTON", L"Alt + V",
                 WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-                S(290), S(238), S(90), S(22), hwnd, (HMENU)ID_SETTINGS_HOTKEY_2, GetModuleHandle(NULL), NULL);
+                S(330), S(334), S(90), S(26), hwnd, (HMENU)ID_SETTINGS_HOTKEY_2, GetModuleHandle(NULL), NULL);
             g_hwndSettingsHotkey3 = CreateWindowExW(0, L"BUTTON", L"Win + V",
                 WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-                S(390), S(238), S(80), S(22), hwnd, (HMENU)ID_SETTINGS_HOTKEY_3, GetModuleHandle(NULL), NULL);
+                S(445), S(334), S(100), S(26), hwnd, (HMENU)ID_SETTINGS_HOTKEY_3, GetModuleHandle(NULL), NULL);
 
-            // ── 卡片4：音效 (y=278‥354) ──
+            // ── 卡片4：行为与声音 ──
             g_hwndSettingsSoundEnabled = CreateWindowExW(0, L"BUTTON", L"复制时播放音效",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-                S(26), S(308), S(150), S(22), hwnd, (HMENU)ID_SETTINGS_SOUND_ENABLED, GetModuleHandle(NULL), NULL);
+                S(28), S(438), S(170), S(22), hwnd, (HMENU)ID_SETTINGS_SOUND_ENABLED, GetModuleHandle(NULL), NULL);
             g_hwndSettingsAutoStart = CreateWindowExW(0, L"BUTTON", L"开机自动启动",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-                S(210), S(308), S(180), S(22), hwnd, (HMENU)ID_SETTINGS_AUTOSTART, GetModuleHandle(NULL), NULL);
+                S(230), S(438), S(180), S(22), hwnd, (HMENU)ID_SETTINGS_AUTOSTART, GetModuleHandle(NULL), NULL);
             HWND hLabelSound = CreateWindowExW(0, L"STATIC", L"音效文件", WS_CHILD | WS_VISIBLE,
-                S(26), S(334), S(60), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
+                S(28), S(474), S(60), S(22), hwnd, NULL, GetModuleHandle(NULL), NULL);
             g_hwndSettingsSoundPath = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", NULL,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                S(90), S(332), S(280), S(24), hwnd, (HMENU)ID_SETTINGS_SOUND_PATH, GetModuleHandle(NULL), NULL);
+                S(98), S(471), S(370), S(26), hwnd, (HMENU)ID_SETTINGS_SOUND_PATH, GetModuleHandle(NULL), NULL);
             HWND hButtonBrowseSound = CreateWindowExW(0, L"BUTTON", L"浏览",
                 WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
-                S(380), S(332), S(68), S(25), hwnd, (HMENU)ID_SETTINGS_SOUND_BROWSE, GetModuleHandle(NULL), NULL);
+                S(480), S(471), S(90), S(26), hwnd, (HMENU)ID_SETTINGS_SOUND_BROWSE, GetModuleHandle(NULL), NULL);
 
             // ── 底部按钮栏 ──
             HWND hButtonSave = CreateWindowExW(0, L"BUTTON", L"保存并应用",
                 WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
-                S(26), S(370), S(112), S(32), hwnd, (HMENU)ID_SETTINGS_SAVE, GetModuleHandle(NULL), NULL);
+                S(28), S(540), S(125), S(36), hwnd, (HMENU)ID_SETTINGS_SAVE, GetModuleHandle(NULL), NULL);
             HWND hButtonOpenDir = CreateWindowExW(0, L"BUTTON", L"打开缓存目录",
                 WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
-                S(146), S(370), S(112), S(32), hwnd, (HMENU)ID_SETTINGS_OPEN_DIR, GetModuleHandle(NULL), NULL);
+                S(165), S(540), S(125), S(36), hwnd, (HMENU)ID_SETTINGS_OPEN_DIR, GetModuleHandle(NULL), NULL);
             HWND hButtonClearCache = CreateWindowExW(0, L"BUTTON", L"清除缓存",
                 WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
-                S(266), S(370), S(112), S(32), hwnd, (HMENU)ID_SETTINGS_CLEAR_CACHE, GetModuleHandle(NULL), NULL);
+                S(302), S(540), S(125), S(36), hwnd, (HMENU)ID_SETTINGS_CLEAR_CACHE, GetModuleHandle(NULL), NULL);
             HWND hButtonClose = CreateWindowExW(0, L"BUTTON", L"关闭",
                 WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
-                S(386), S(370), S(108), S(32), hwnd, (HMENU)ID_SETTINGS_CLOSE, GetModuleHandle(NULL), NULL);
+                S(439), S(540), S(125), S(36), hwnd, (HMENU)ID_SETTINGS_CLOSE, GetModuleHandle(NULL), NULL);
 
             HWND hControls[] = { hLabelCount, g_hwndSettingsMaxCount, hLabelRetention, g_hwndSettingsRetention,
                 hLabelFontSize, g_hwndSettingsFontSize, hLabelLineCount, g_hwndSettingsLineCount,
@@ -1570,23 +1570,33 @@ LRESULT CALLBACK SettingsWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             auto S = [dpi](int value) { return DpiScale(value, dpi); };
 
             // 深色标题栏
-            RECT rcHdr = {0, 0, rc.right, S(48)};
+            RECT rcHdr = {0, 0, rc.right, S(56)};
             HBRUSH hdrBr = CreateSolidBrush(RGB(55, 65, 81)); FillRect(hdc, &rcHdr, hdrBr); DeleteObject(hdrBr);
             SetBkMode(hdc, TRANSPARENT); SetTextColor(hdc, RGB(255, 255, 255));
             HFONT hdrFont = CreateFontW(-S(20), 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
                 DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                 DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
             HGDIOBJ oldF = SelectObject(hdc, hdrFont);
-            RECT rcT = {S(18), 0, rc.right - S(18), S(48)};
+            RECT rcT = {S(24), S(4), rc.right - S(24), S(36)};
             DrawTextW(hdc, L"⚙  设置", -1, &rcT, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
             SelectObject(hdc, oldF); DeleteObject(hdrFont);
 
-            // 四张白色卡片
+            HFONT subtitleFont = CreateFontW(-S(11), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+            HGDIOBJ oldSubtitleFont = SelectObject(hdc, subtitleFont);
+            SetTextColor(hdc, RGB(203, 213, 225));
+            RECT rcSubtitle = {S(28), S(35), rc.right - S(24), S(54)};
+            DrawTextW(hdc, L"剪贴板 · 显示 · 快捷键 · 行为", -1, &rcSubtitle,
+                DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+            SelectObject(hdc, oldSubtitleFont); DeleteObject(subtitleFont);
+
+            // 分组卡片
             struct { int top, h; const wchar_t* title; } cards[] = {
-                {60, 62,  L"📦  缓存管理"}, {132, 74, L"🎨  显示设置"},
-                {216, 60,  L"⌨  快捷键"},   {286, 74, L"🔊  音效"}
+                {68, 94,  L"📦  历史记录"}, {176, 112, L"🎨  界面显示"},
+                {302, 94, L"⌨  快捷键"},   {410, 106, L"🔊  行为与声音"}
             };
-            HFONT secF = CreateFontW(-S(13), 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
+            HFONT secF = CreateFontW(-S(14), 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
                 DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                 DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
             for (int i = 0; i < 4; i++) {
@@ -1594,14 +1604,22 @@ LRESULT CALLBACK SettingsWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
                 HBRUSH cBr = CreateSolidBrush(RGB(255, 255, 255));
                 HPEN cPn = CreatePen(PS_SOLID, 1, RGB(222, 226, 230));
                 HGDIOBJ oBr = SelectObject(hdc, cBr), oPn = SelectObject(hdc, cPn);
-                RoundRect(hdc, cr.left, cr.top, cr.right, cr.bottom, S(8), S(8));
+                RoundRect(hdc, cr.left, cr.top, cr.right, cr.bottom, S(10), S(10));
                 SelectObject(hdc, oBr); SelectObject(hdc, oPn); DeleteObject(cBr); DeleteObject(cPn);
-                SetTextColor(hdc, RGB(107, 114, 128));
+                HBRUSH accentBrush = CreateSolidBrush(RGB(59, 130, 246));
+                RECT accent = {cr.left, cr.top + S(10), cr.left + S(4), cr.bottom - S(10)};
+                FillRect(hdc, &accent, accentBrush);
+                DeleteObject(accentBrush);
+                SetTextColor(hdc, RGB(75, 85, 99));
                 SelectObject(hdc, secF);
-                RECT rt = {cr.left + S(14), cr.top + S(6), cr.right - S(14), cr.top + S(24)};
+                RECT rt = {cr.left + S(18), cr.top + S(8), cr.right - S(14), cr.top + S(34)};
                 DrawTextW(hdc, cards[i].title, -1, &rt, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
             }
             SelectObject(hdc, oldF); DeleteObject(secF);
+            HBRUSH dividerBrush = CreateSolidBrush(RGB(226, 232, 240));
+            RECT divider = {S(24), S(528), rc.right - S(24), S(529)};
+            FillRect(hdc, &divider, dividerBrush);
+            DeleteObject(dividerBrush);
             EndPaint(hwnd, &ps);
             return 0;
         }
@@ -1653,7 +1671,10 @@ LRESULT CALLBACK SettingsWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             RECT rcChild; GetWindowRect(hChild, &rcChild);
             POINT pt = {rcChild.left, rcChild.top}; ScreenToClient(hwnd, &pt);
             UINT dpi = GetWindowDpi(hwnd);
-            return (pt.y >= DpiScale(60, dpi) && pt.y <= DpiScale(360, dpi))
+            // 设置页的四张卡片从设计坐标 y=68 延伸到 y=516。
+            // 使用完整卡片范围，避免第四张“行为与声音”卡片中的静态控件
+            // 被误判为窗口背景，导致 125% DPI 下出现灰色底块。
+            return (pt.y >= DpiScale(68, dpi) && pt.y <= DpiScale(516, dpi))
                                                ? (LRESULT)GetStockObject(WHITE_BRUSH)
                                                : (LRESULT)GetClassLongPtrW(hwnd, GCLP_HBRBACKGROUND);
         }
