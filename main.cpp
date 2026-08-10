@@ -168,7 +168,8 @@ void LoadHistoryFromDisk();
 bool LoadTextFile(const std::wstring& filePath, std::wstring& outText);
 HBITMAP LoadBitmapFromPNG(const std::wstring& filePath);
 HBITMAP CreateThumbnail(Image& source);
-HBITMAP LoadThumbnailFromPNG(const std::wstring& filePath);
+HBITMAP LoadThumbnailFromFile(const std::wstring& filePath);
+std::wstring GetSingleFilePath(const std::wstring& pathsData);
 DWORD WINAPI ImageWorkerProc(LPVOID param);
 void CleanupImageResult(ImageResult* result, bool deleteFile);
 bool EnsureListBackBuffer(HDC referenceDC, int width, int height);
@@ -733,6 +734,30 @@ void DrawCard(HDC hdc, int index, RECT rcItem, bool isSelected) {
     rcContent.bottom -= DpiScale(10, dpi);
     SelectObject(hdc, g_hFontMain); SetTextColor(hdc, RGB(40, 40, 40));
 
+    auto drawThumbnailRight = [&](HBITMAP hThumbnail, int widthPercent) {
+        if (!hThumbnail) return;
+        Graphics graphics(hdc);
+        graphics.SetInterpolationMode(InterpolationModeBilinear);
+
+        Bitmap bmp(hThumbnail, NULL);
+        UINT w = bmp.GetWidth(); UINT h = bmp.GetHeight();
+        if (w == 0) w = 1; if (h == 0) h = 1;
+
+        int cellInnerH = rcContent.bottom - rcContent.top;
+        int minImageSize = DpiScale(8, dpi);
+        int maxH = (cellInnerH > minImageSize) ? cellInnerH : minImageSize;
+        int maxW = (rcCard.right - rcCard.left) * widthPercent / 100;
+        if (maxW < minImageSize) maxW = minImageSize;
+        float scaleX = (float)maxW / w; float scaleY = (float)maxH / h;
+        float scale = (scaleX < scaleY) ? scaleX : scaleY;
+
+        int drawW = (w * scale > 1) ? (int)(w * scale) : 1;
+        int drawH = (h * scale > 1) ? (int)(h * scale) : 1;
+        int drawX = rcCard.right - DpiScale(10, dpi) - drawW;
+        int drawY = rcContent.top + (cellInnerH - drawH) / 2;
+        graphics.DrawImage(&bmp, drawX, drawY, drawW, drawH);
+    };
+
     if (item.type == TYPE_TEXT) {
         std::wstring displayMsg = item.text.substr(0, 300);
         if (!g_wordWrap) {
@@ -745,38 +770,21 @@ void DrawCard(HDC hdc, int index, RECT rcItem, bool isSelected) {
     } else if (item.type == TYPE_IMAGE) {
         SelectObject(hdc, g_hFontTime);
         DrawTextW(hdc, item.imagePending ? L"[图片处理中]" : L"[图片]", -1, &rcContent, DT_LEFT | DT_TOP);
-        if (!item.hThumbnail) return;
-
-        Graphics graphics(hdc);
-        graphics.SetInterpolationMode(InterpolationModeBilinear);
-
-        Bitmap bmp(item.hThumbnail, NULL);
-        UINT w = bmp.GetWidth(); UINT h = bmp.GetHeight();
-        if (w == 0) w = 1; if (h == 0) h = 1;
-
-        int cellInnerH = rcContent.bottom - rcContent.top;
-        int minImageSize = DpiScale(8, dpi);
-        int maxH = (cellInnerH > minImageSize) ? cellInnerH : minImageSize;
-        int maxW = (rcCard.right - rcCard.left) * 55 / 100;
-        if (maxW < minImageSize) maxW = minImageSize;
-        float scaleX = (float)maxW / w; float scaleY = (float)maxH / h;
-        float scale = (scaleX < scaleY) ? scaleX : scaleY;
-
-        int drawW = (w * scale > 1) ? (int)(w * scale) : 1;
-        int drawH = (h * scale > 1) ? (int)(h * scale) : 1;
-        int drawX = rcCard.right - DpiScale(10, dpi) - drawW;
-        int drawY = rcContent.top + (cellInnerH - drawH) / 2;
-
-        graphics.DrawImage(&bmp, drawX, drawY, drawW, drawH);
+        drawThumbnailRight(item.hThumbnail, 55);
     } else if (item.type == TYPE_FILE_LIST) {
         SetTextColor(hdc, RGB(220, 38, 38));
         DrawTextW(hdc, L"[磁盘文件]", -1, &rcContent, DT_LEFT | DT_TOP | DT_SINGLELINE);
         SetTextColor(hdc, RGB(40, 40, 40));
         RECT rcPaths = rcContent;
         rcPaths.top += DpiScale(22, dpi);
+        if (item.hThumbnail) {
+            int thumbnailSpace = (rcCard.right - rcCard.left) * 42 / 100;
+            rcPaths.right = rcCard.right - thumbnailSpace - DpiScale(16, dpi);
+        }
         std::wstring displayMsg = item.text;
         for (auto& c : displayMsg) if (c == L'\r' || c == L'\n') c = L' ';
         DrawTextW(hdc, displayMsg.c_str(), -1, &rcPaths, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_EDITCONTROL | DT_END_ELLIPSIS);
+        drawThumbnailRight(item.hThumbnail, 42);
     }
 }
 
@@ -1036,6 +1044,12 @@ void AddItemToHistory(ClipType type, const std::wstring& text, HBITMAP hBmp) {
     ImageTask* imageTask = NULL;
     if (type == TYPE_TEXT || type == TYPE_FILE_LIST) {
         item.text = text; item.filePath = g_historyDirPath + L"\\" + GetFileSafeTimeStr() + L"_" + std::to_wstring(item.id) + L".txt";
+        if (type == TYPE_FILE_LIST) {
+            // 单个图片文件仍按文件列表保存，确保回车/双击时继续粘贴原文件；
+            // 仅额外加载一个小缩略图用于列表预览。
+            std::wstring imagePath = GetSingleFilePath(text);
+            if (!imagePath.empty()) item.hThumbnail = LoadThumbnailFromFile(imagePath);
+        }
         HANDLE hFile = CreateFileW(item.filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if (hFile != INVALID_HANDLE_VALUE) {
             WORD bom = 0xFEFF; DWORD bw = 0;
@@ -1153,10 +1167,25 @@ HBITMAP CreateThumbnail(Image& source) {
     return hThumbnail;
 }
 
-HBITMAP LoadThumbnailFromPNG(const std::wstring& filePath) {
+HBITMAP LoadThumbnailFromFile(const std::wstring& filePath) {
+    if (filePath.empty()) return NULL;
     Bitmap source(filePath.c_str(), FALSE);
     if (source.GetLastStatus() != Ok) return NULL;
     return CreateThumbnail(source);
+}
+
+std::wstring GetSingleFilePath(const std::wstring& pathsData) {
+    size_t start = 0;
+    while (start < pathsData.size() && (pathsData[start] == L'\r' || pathsData[start] == L'\n')) start++;
+    if (start >= pathsData.size()) return L"";
+
+    size_t end = pathsData.find_first_of(L"\r\n", start);
+    if (end == std::wstring::npos) return pathsData.substr(start);
+
+    size_t next = end;
+    while (next < pathsData.size() && (pathsData[next] == L'\r' || pathsData[next] == L'\n')) next++;
+    if (next != pathsData.size()) return L""; // 存在第二个文件路径
+    return pathsData.substr(start, end - start);
 }
 
 void CleanupImageResult(ImageResult* result, bool deleteFile) {
@@ -1253,7 +1282,7 @@ void LoadHistoryFromDisk() {
         item.timestamp = GetFileTimestamp(entry.path);
         item.hThumbnail = NULL;
         if (_wcsicmp(ext.c_str(), L".png") == 0) {
-            HBITMAP hThumbnail = LoadThumbnailFromPNG(entry.path);
+            HBITMAP hThumbnail = LoadThumbnailFromFile(entry.path);
             if (!hThumbnail) continue;
             item.type = TYPE_IMAGE;
             item.hThumbnail = hThumbnail;
@@ -1264,6 +1293,8 @@ void LoadHistoryFromDisk() {
             if (text.rfind(fileListHeader, 0) == 0) {
                 item.type = TYPE_FILE_LIST;
                 item.text = text.substr(fileListHeader.size());
+                std::wstring imagePath = GetSingleFilePath(item.text);
+                if (!imagePath.empty()) item.hThumbnail = LoadThumbnailFromFile(imagePath);
             } else {
                 item.type = TYPE_TEXT;
                 item.text = text;
