@@ -4,7 +4,7 @@
 
 > **VC = Vibe Coding**
 
-本项目是一个使用 Vibe Coding 工作流完成的原生 C++ Win32 应用。它不依赖 Tauri、Electron 或浏览器运行时，直接调用 Windows API 管理剪贴板、全局快捷键、系统托盘、缓存和开机启动。
+本项目是一个使用 Vibe Coding 工作流完成的原生 C++ Win32 应用。直接调用 Windows API 管理剪贴板、全局快捷键、系统托盘、缓存和开机启动。不依赖 Tauri、Electron 或浏览器运行时.
 
 ## 下载
 
@@ -91,6 +91,8 @@ HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run\VCClipboardManag
 - Claude Opus
 - GPT-5.6
 - DeepSeek V4 Pro
+
+已平稳运行3个月
 
 ## 音效来源
 
