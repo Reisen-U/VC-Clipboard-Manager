@@ -66,6 +66,7 @@ int g_fontSize = 11;
 int g_itemLines = 5;
 bool g_soundEnabled = true;
 bool g_hoverSettingsBtn = false;
+bool g_hoverTopBtn = false;
 WCHAR g_soundFilePath[MAX_PATH] = {};
 std::wstring g_historyDirPath; 
 ULONG_PTR gdiplusToken;
@@ -149,6 +150,8 @@ int GetClipListMaxScroll();
 void ClampScroll();
 void UpdateScrollBar();
 void EnsureIndexVisible(int index);
+void JumpListToTop(bool selectFirst);
+void JumpListToBottom();
 LRESULT CALLBACK SettingsWndProc(HWND, UINT, WPARAM, LPARAM);
 bool SaveBitmapToPNG(HBITMAP hBitmap, const std::wstring& filePath);
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
@@ -346,13 +349,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             SetBkMode(hdc, TRANSPARENT); SetTextColor(hdc, RGB(255, 255, 255)); SelectObject(hdc, g_hFontMain);
             rcHeader.left += DpiScale(15, dpi);
             DrawTextW(hdc, L"📋 剪贴板历史", -1, &rcHeader, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-            // 右上角设置按钮（悬停高亮）
-            RECT rcBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
+            // 右上角回到顶部与设置按钮（悬停高亮）
+            RECT rcTopBtn = {rcClient.right - DpiScale(78, dpi), DpiScale(5, dpi),
+                rcClient.right - DpiScale(48, dpi), DpiScale(30, dpi)};
+            HBRUSH brTopBtn = CreateSolidBrush(g_hoverTopBtn ? RGB(100, 110, 125) : RGB(75, 85, 99));
+            FillRect(hdc, &rcTopBtn, brTopBtn); DeleteObject(brTopBtn);
+            SetTextColor(hdc, g_hoverTopBtn ? RGB(255, 255, 255) : RGB(220, 220, 230));
+            DrawTextW(hdc, L"↑", -1, &rcTopBtn, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+            RECT rcSettingsBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
                 rcClient.right - DpiScale(10, dpi), DpiScale(30, dpi)};
             HBRUSH brBtn = CreateSolidBrush(g_hoverSettingsBtn ? RGB(100, 110, 125) : RGB(75, 85, 99));
-            FillRect(hdc, &rcBtn, brBtn); DeleteObject(brBtn);
+            FillRect(hdc, &rcSettingsBtn, brBtn); DeleteObject(brBtn);
             SetTextColor(hdc, g_hoverSettingsBtn ? RGB(255, 255, 255) : RGB(220, 220, 230));
-            DrawTextW(hdc, L"🔧", -1, &rcBtn, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+            DrawTextW(hdc, L"🔧", -1, &rcSettingsBtn, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
             EndPaint(hwnd, &ps); return 0;
         }
 
@@ -360,9 +370,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             int x = GET_X_LPARAM(lParam); int y = GET_Y_LPARAM(lParam);
             RECT rcClient; GetClientRect(hwnd, &rcClient);
             UINT dpi = GetWindowDpi(hwnd);
-            RECT rcBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
+            RECT rcTopBtn = {rcClient.right - DpiScale(78, dpi), DpiScale(5, dpi),
+                rcClient.right - DpiScale(48, dpi), DpiScale(30, dpi)};
+            if (x >= rcTopBtn.left && x <= rcTopBtn.right && y >= rcTopBtn.top && y <= rcTopBtn.bottom) {
+                JumpListToTop(true);
+                SetFocus(g_hwndList);
+                return 0;
+            }
+            RECT rcSettingsBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
                 rcClient.right - DpiScale(10, dpi), DpiScale(30, dpi)};
-            if (x >= rcBtn.left && x <= rcBtn.right && y >= rcBtn.top && y <= rcBtn.bottom) {
+            if (x >= rcSettingsBtn.left && x <= rcSettingsBtn.right &&
+                y >= rcSettingsBtn.top && y <= rcSettingsBtn.bottom) {
                 OpenSettingsWindow(hwnd);
                 return 0;
             }
@@ -373,14 +391,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             int x = GET_X_LPARAM(lParam); int y = GET_Y_LPARAM(lParam);
             RECT rcClient; GetClientRect(hwnd, &rcClient);
             UINT dpi = GetWindowDpi(hwnd);
-            RECT rcBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
+            RECT rcTopBtn = {rcClient.right - DpiScale(78, dpi), DpiScale(5, dpi),
+                rcClient.right - DpiScale(48, dpi), DpiScale(30, dpi)};
+            RECT rcSettingsBtn = {rcClient.right - DpiScale(40, dpi), DpiScale(5, dpi),
                 rcClient.right - DpiScale(10, dpi), DpiScale(30, dpi)};
-            bool inBtn = (x >= rcBtn.left && x <= rcBtn.right && y >= rcBtn.top && y <= rcBtn.bottom);
-            if (inBtn != g_hoverSettingsBtn) {
-                g_hoverSettingsBtn = inBtn;
+            bool inTopBtn = (x >= rcTopBtn.left && x <= rcTopBtn.right &&
+                y >= rcTopBtn.top && y <= rcTopBtn.bottom);
+            bool inSettingsBtn = (x >= rcSettingsBtn.left && x <= rcSettingsBtn.right &&
+                y >= rcSettingsBtn.top && y <= rcSettingsBtn.bottom);
+            if (inTopBtn != g_hoverTopBtn || inSettingsBtn != g_hoverSettingsBtn) {
+                g_hoverTopBtn = inTopBtn;
+                g_hoverSettingsBtn = inSettingsBtn;
                 RECT rcHeader = {0, 0, rcClient.right, DpiScale(35, dpi)};
                 InvalidateRect(hwnd, &rcHeader, FALSE);
-                if (inBtn) {
+                if (inTopBtn || inSettingsBtn) {
                     TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hwnd, 0};
                     TrackMouseEvent(&tme);
                 }
@@ -389,7 +413,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         }
 
         case WM_MOUSELEAVE: {
-            if (g_hoverSettingsBtn) {
+            if (g_hoverTopBtn || g_hoverSettingsBtn) {
+                g_hoverTopBtn = false;
                 g_hoverSettingsBtn = false;
                 RECT rcClient; GetClientRect(hwnd, &rcClient);
                 RECT rcHeader = {0, 0, rcClient.right, DpiScale(35, GetWindowDpi(hwnd))};
@@ -401,10 +426,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_NCHITTEST: { // 让系统误以为深色条是原生标题栏
             POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
             ScreenToClient(hwnd, &pt);
-            // 设置按钮区域不参与拖动
+            // 两个标题栏按钮区域不参与拖动
             RECT rcClient; GetClientRect(hwnd, &rcClient);
             UINT dpi = GetWindowDpi(hwnd);
-            if (pt.x >= rcClient.right - DpiScale(40, dpi) &&
+            if (pt.x >= rcClient.right - DpiScale(78, dpi) &&
                 pt.x <= rcClient.right - DpiScale(10, dpi) &&
                 pt.y >= DpiScale(5, dpi) && pt.y <= DpiScale(30, dpi))
                 return HTCLIENT;
@@ -689,6 +714,30 @@ void UpdateScrollBar() {
     SetScrollInfo(g_hwndList, SB_VERT, &si, TRUE);
 }
 
+void JumpListToTop(bool selectFirst) {
+    if (!g_hwndList) return;
+    if (g_scrollTimer != 0) {
+        KillTimer(g_hwndList, SCROLL_TIMER_ID);
+        g_scrollTimer = 0;
+    }
+    g_selIndex = (selectFirst && !g_history.empty()) ? 0 : -1;
+    g_scrollY = g_scrollTargetY = 0;
+    UpdateScrollBar();
+    InvalidateRect(g_hwndList, NULL, FALSE);
+}
+
+void JumpListToBottom() {
+    if (!g_hwndList || g_history.empty()) return;
+    if (g_scrollTimer != 0) {
+        KillTimer(g_hwndList, SCROLL_TIMER_ID);
+        g_scrollTimer = 0;
+    }
+    g_selIndex = (int)g_history.size() - 1;
+    g_scrollY = g_scrollTargetY = GetClipListMaxScroll();
+    UpdateScrollBar();
+    InvalidateRect(g_hwndList, NULL, FALSE);
+}
+
 // 让指定项完整出现在可视区内（用于键盘上下移动选中）
 void EnsureIndexVisible(int index) {
     if (!g_hwndList || index < 0 || index >= (int)g_history.size()) return;
@@ -858,6 +907,9 @@ void PasteHistoryItem(int index) {
     g_ignoreNextClipboardUpdate = true;
     SimulatePaste();
     g_isPasting = false;
+    // 粘贴完成后清除旧选中项并回到最新记录。
+    // 否则后续新增历史会不断把旧选中索引向下推，下一次按方向键时会突然跳回旧位置。
+    JumpListToTop(false);
 }
 
 // 自绘平滑滚动列表的窗口过程
@@ -982,6 +1034,35 @@ LRESULT CALLBACK ClipListProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (g_selIndex >= 0) PasteHistoryItem(g_selIndex);
                 return 0;
             }
+            if (wParam == VK_HOME) {
+                JumpListToTop(true);
+                return 0;
+            }
+            if (wParam == VK_END) {
+                JumpListToBottom();
+                return 0;
+            }
+            if (wParam == VK_PRIOR || wParam == VK_NEXT) {
+                if (g_history.empty()) return 0;
+                int itemH = GetListItemHeight(hwnd);
+                RECT rc; GetClientRect(hwnd, &rc);
+                int viewH = (int)(rc.bottom - rc.top);
+                int pageItems = std::max(1, viewH / std::max(1, itemH));
+                int lastIndex = (int)g_history.size() - 1;
+                if (g_selIndex < 0) {
+                    int firstVisible = std::min(lastIndex, std::max(0, g_scrollY / std::max(1, itemH)));
+                    g_selIndex = (wParam == VK_NEXT)
+                        ? std::min(lastIndex, firstVisible + pageItems - 1)
+                        : firstVisible;
+                } else {
+                    g_selIndex += (wParam == VK_NEXT) ? pageItems : -pageItems;
+                    g_selIndex = std::max(0, std::min(lastIndex, g_selIndex));
+                }
+                EnsureIndexVisible(g_selIndex);
+                if (g_scrollTimer == 0) g_scrollTimer = SetTimer(hwnd, SCROLL_TIMER_ID, SCROLL_FRAME_MS, NULL);
+                InvalidateRect(hwnd, NULL, FALSE);
+                return 0;
+            }
             if (wParam == VK_DOWN || wParam == VK_UP) {
                 if (g_history.empty()) return 0;
                 if (g_selIndex < 0) g_selIndex = 0;
@@ -1069,8 +1150,10 @@ void AddItemToHistory(ClipType type, const std::wstring& text, HBITMAP hBmp) {
         imageTask = new ImageTask{ g_hwndMain, item.id, item.filePath, hOriginal };
     }
     g_history.insert(g_history.begin(), item);
-    if (g_selIndex >= 0) g_selIndex++;       // 选中项随之下移，保持指向原来那条
-    g_scrollY = g_scrollTargetY = 0;          // 新内容置顶，滚回顶部展示最新
+    // 新内容到来后从最新记录重新开始导航，避免旧选中项随插入不断下移，
+    // 导致下次按方向键时突然跳到很久以前的位置。
+    g_selIndex = -1;
+    g_scrollY = g_scrollTargetY = 0;
     if (g_hwndList) { UpdateScrollBar(); InvalidateRect(g_hwndList, NULL, FALSE); }
     EnforceHistoryRetention();
     EnforceHistoryLimit();
